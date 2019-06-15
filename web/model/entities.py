@@ -1,21 +1,25 @@
-from sqlalchemy import Column, Integer, String, Sequence, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Sequence, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from database import connector
+from datetime import datetime
+from model import entities
+from flask_login import UserMixin
 
-class User(connector.Manager.Base):
+class User(connector.Manager.Base, UserMixin):
     __tablename__ = 'users'
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
-    name = Column(String(50))
-    fullname = Column(String(50))
+    username = Column(String(20))
+    email = Column(String(120))
     password = Column(String(12))
-    username = Column(String(12))
+    name = Column(String(20))
+    fullname = Column(String(50))
+    #posts = relationship('Post', backref='username', lazy=True)
 
-class Message(connector.Manager.Base):
-    __tablename__ = 'messages'
-    id = Column(Integer, Sequence('message_id_seq'), primary_key=True)
-    content = Column(String(500))
-    sent_on = Column(DateTime(timezone=True))
-    user_from_id = Column(Integer, ForeignKey('users.id'))
-    user_to_id = Column(Integer, ForeignKey('users.id'))
-    user_from = relationship(User, foreign_keys=[user_from_id])
-    user_to = relationship(User, foreign_keys=[user_to_id])
+class Post(connector.Manager.Base):
+    __tablename__ = 'posts'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(100), nullable=False)
+    date_posted = Column(DateTime, nullable=False, default=datetime.utcnow)
+    content = Column(Text, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    rel_username = relationship(User, foreign_keys=[user_id])
